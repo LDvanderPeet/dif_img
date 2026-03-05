@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 import pytorch_lightning as pl
+import torch
 import yaml
 from pytorch_lightning.loggers import WandbLogger
 
@@ -35,6 +36,10 @@ def main() -> None:
     config = load_config(args.config)
     # Ensures deterministic random behavior where possible.
     pl.seed_everything(config.get("seed", 42), workers=True)
+    # Controls float32 matmul precision tradeoff: "medium" (faster) or "high" (more accurate).
+    torch.set_float32_matmul_precision(
+        config.get("trainer", {}).get("float32_matmul_precision", "high")
+    )
 
     # DataModule centralizes loader construction and setup for Lightning.
     datamodule = PairedDataModule.from_config(config)
